@@ -6,20 +6,21 @@ class HomePage(BasePage):
     section = "home"
     URL = f"{BASE_URL}/"
 
-    SEARCH_INPUT    = (By.CSS_SELECTOR, ".filter-bar input[type='text']")
-    BTN_ALL         = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[text()='All']")
-    BTN_FOOTBALL    = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[contains(.,'Football')]")
-    BTN_BADMINTON   = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[contains(.,'Badminton')]")
-    BTN_TENNIS      = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[contains(.,'Tennis')]")
-    DATE_INPUT      = (By.CSS_SELECTOR, ".filter-bar input[type='date']")
+    SEARCH_INPUT = (By.CSS_SELECTOR, ".filter-bar input[type='text']")
+    BTN_ALL = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[text()='All']")
+    BTN_FOOTBALL = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[contains(.,'Football')]")
+    BTN_BADMINTON = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[contains(.,'Badminton')]")
+    BTN_TENNIS = (By.XPATH, "//div[contains(@class,'filter-buttons')]//button[contains(.,'Tennis')]")
+    DATE_INPUT = (By.CSS_SELECTOR, ".filter-bar input[type='date']")
 
-    COURT_CARDS     = (By.CSS_SELECTOR, ".container .court-name")
-    BOOK_BTN_FIRST  = (By.CSS_SELECTOR, ".grid > div:nth-child(1) .card-footer button")
+    COURT_CARDS = (By.CSS_SELECTOR, ".container .court-name")
+    BOOK_BTN_FIRST= (By.CSS_SELECTOR, ".grid > div:nth-child(1) .card-footer button")
     BOOK_BTN_SECOND = (By.CSS_SELECTOR, ".grid > div:nth-child(2) .card-footer button")
     EMPTY_STATE     = (By.CSS_SELECTOR, ".empty-state")
 
-    HEADER_NAV      = (By.CSS_SELECTOR, "header")
-    LOGOUT_BTN      = (By.XPATH, "//button[contains(.,'Logout') or contains(.,'Sign out')]")
+    HEADER_NAV = (By.CSS_SELECTOR, "header")
+    LOGOUT_BTN = (By.XPATH, "//button[contains(.,'Logout') or contains(.,'Sign out')]")
+    LOGIN_BTN = (By.XPATH, "//*[contains(text(), 'Go to the Login page')]")
 
     def open_page(self):
         self.open(self.URL)
@@ -57,3 +58,5 @@ class HomePage(BasePage):
             return True
         except Exception:
             return False
+    def click_login_btn(self):
+        self.click(*self.LOGIN_BTN)

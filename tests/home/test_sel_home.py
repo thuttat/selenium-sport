@@ -1,6 +1,9 @@
 import pytest
 from tests.pages.HomePage import HomePage
 from tests.pages.LoginPage import LoginPage
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 # TC_HOME_01
@@ -73,11 +76,13 @@ def test_click_book_now_redirects_to_court(driver):
 
 # TC_HOME_07
 def test_book_now_without_login_redirects_to_login(driver):
+
     home = HomePage(driver)
     home.open_page()
     home.click_book_first()
+    home.click_login_btn()
 
     home.screenshot("TC_HOME_07_book_unauthenticated")
     home.wait_url_contains("/login")
     assert "/login" in driver.current_url, \
-        "Chưa đăng nhập mà vẫn vào được trang đặt sân!"
+        f"Không chuyển về trang login sau khi click: {driver.current_url}"

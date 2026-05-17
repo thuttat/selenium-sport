@@ -4,8 +4,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 TIMEOUT = 10
 BASE_URL = "http://localhost:5173"
-
-SCREENSHOT_BASE = "../../screenshots"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SCREENSHOT_BASE = os.path.join(BASE_DIR, "screenshots")
 
 
 class BasePage:
