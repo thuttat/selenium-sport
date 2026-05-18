@@ -6,11 +6,12 @@ class LoginPage(BasePage):
     section = "auth"
     URL = f"{BASE_URL}/login"
 
-    USERNAME_INPUT  = (By.CSS_SELECTOR, "input[type='text']")
+    USERNAME_INPUT = (By.CSS_SELECTOR, "input[type='text']")
     PASSWORD_INPUT  = (By.CSS_SELECTOR, "input[type='password']")
-    SUBMIT_BTN      = (By.CSS_SELECTOR, "button[type='submit']")
-    ERROR_MSG       = (By.CSS_SELECTOR, ".error")
-    REGISTER_LINK   = (By.CSS_SELECTOR, "a.link-primary")
+    SUBMIT_BTN = (By.CSS_SELECTOR, "button[type='submit']")
+    ERROR_MSG  = (By.CSS_SELECTOR, ".error")
+    REGISTER_LINK = (By.CSS_SELECTOR, "a.link-primary")
+    AVATAR_OR_NAV = (By.CSS_SELECTOR, "header .btn-primary, header img, header .user-info")
 
     def open_page(self):
         self.open(self.URL)
@@ -29,6 +30,9 @@ class LoginPage(BasePage):
         self.fill_username(username)
         self.fill_password(password)
         self.submit()
+
+    def wait_login_success(self):
+        self.wait_visible(*self.AVATAR_OR_NAV)
 
     def get_error_message(self):
         return self.wait_visible(*self.ERROR_MSG).text

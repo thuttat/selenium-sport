@@ -4,10 +4,12 @@ from tests.pages.BookingDetailPage import BookingDetailPage
 from tests.pages.BookingHistoryPage import BookingHistoryPage
 
 
-def login_as_user(driver, username="testuser", password="ValidPass123!"):
+def login_as_user(driver, username="b", password="anhthu123@"):
     login = LoginPage(driver)
     login.login(username, password)
-    login.wait_url_contains("/")
+    login.wait_login_success()
+
+    return driver
 
 
 # TC_CAN_01
@@ -16,7 +18,9 @@ def test_cancel_booking_success(driver):
 
     history = BookingHistoryPage(driver)
     history.open_page()
-    history.screenshot("TC_CAN_01_booking_list_before_cancel")
+
+    history.wait_visible(*BookingHistoryPage.BOOKING_CARDS)
+    history.screenshot("TC_CAN_01_booking_list_before_cancel", section="cancel")
 
     count_before = history.get_booking_count()
     if count_before == 0:
@@ -24,19 +28,20 @@ def test_cancel_booking_success(driver):
 
     history.click_first_booking()
 
+
     detail = BookingDetailPage(driver)
+    detail.wait_url_contains("/booking/")
+    detail.wait_visible(*BookingDetailPage.CANCEL_BTN)
     detail.screenshot("TC_CAN_01_booking_detail_before_cancel")
 
     if not detail.is_cancel_button_visible():
         pytest.skip("Booking này không thể hủy (không còn nút Cancel)")
 
     detail.cancel_booking()
+    driver.switch_to.alert.accept()
+    detail.accept_alert()
 
-    try:
-        driver.switch_to.alert.accept()
-    except Exception:
-        pass
-
+    detail.wait_visible(*BookingDetailPage.STATUS_BADGE)
     detail.screenshot("TC_CAN_01_after_cancel")
 
     assert not detail.is_cancel_button_visible(), \
@@ -50,11 +55,12 @@ def test_cancel_button_only_visible_for_owner(driver):
     history = BookingHistoryPage(driver)
     history.open_page()
     history.switch_to_history()
-    history.screenshot("TC_CAN_04_history_tab")
+    history.screenshot("TC_CAN_04_history_tab", section="cancel")
 
     if history.get_booking_count() > 0:
         history.click_first_booking()
         detail = BookingDetailPage(driver)
+        detail.wait_visible(*BookingDetailPage.STATUS_BADGE)
         detail.screenshot("TC_CAN_04_completed_booking_detail")
 
         assert not detail.is_cancel_button_visible(), \
@@ -70,7 +76,7 @@ def test_cancelled_booking_moves_to_history_tab(driver):
 
     history.switch_to_upcoming()
     count_upcoming_before = history.get_booking_count()
-    history.screenshot("TC_CAN_07_upcoming_before_cancel")
+    history.screenshot("TC_CAN_07_upcoming_before_cancel", section="cancel")
 
     if count_upcoming_before == 0:
         pytest.skip("Không có upcoming booking để test")
@@ -89,7 +95,7 @@ def test_cancelled_booking_moves_to_history_tab(driver):
     history.open_page()
     history.switch_to_history()
     count_history_after = history.get_booking_count()
-    history.screenshot("TC_CAN_07_history_after_cancel")
+    history.screenshot("TC_CAN_07_history_after_cancel", section="cancel")
 
     assert count_history_after > 0, \
         "Tab History không có booking sau khi hủy — booking chưa chuyển sang History"

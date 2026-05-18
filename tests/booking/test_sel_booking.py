@@ -5,11 +5,13 @@ from tests.pages.CourtPage import CourtPage
 from tests.pages.BookingHistoryPage import BookingHistoryPage
 
 
-def login_as_user(driver, username="testuser", password="ValidPass123!"):
+def login_as_user(driver, username="b", password="anhthu123@"):
     login = LoginPage(driver)
     login.login(username, password)
-    login.wait_url_contains("/")
+    login.wait_login_success()
+
     return driver
+
 
 
 # TC_BOOK_01
@@ -41,8 +43,9 @@ def test_book_without_login(driver):
     home = HomePage(driver)
     home.open_page()
     home.click_book_first()
-    home.screenshot("TC_BOOK_02_book_unauthenticated")
+    home.screenshot("TC_BOOK_02_book_unauthenticated", section="booking")
 
+    home.click_login_btn()
     home.wait_url_contains("/login")
     assert "/login" in driver.current_url
 
@@ -53,7 +56,7 @@ def test_court_status_shows_available_or_full(driver):
 
     home = HomePage(driver)
     home.open_page()
-    home.screenshot("TC_BOOK_14_court_status_display")
+    home.screenshot("TC_BOOK_14_court_status_display", section="booking")
     from selenium.webdriver.common.by import By
     badges = driver.find_elements(By.CSS_SELECTOR, ".badge")
     assert len(badges) > 0, "Không có badge trạng thái nào trên trang chủ"
@@ -85,12 +88,11 @@ def test_cannot_select_past_date(driver):
     court = CourtPage(driver)
     court.wait_url_contains("/court/")
 
-    from selenium.webdriver.common.by import By
-    date_input = driver.find_element(By.CSS_SELECTOR, "input[type='date']")
+    date_input = court.find(*CourtPage.DATE_INPUT)
     min_date = date_input.get_attribute("min")
     court.screenshot("TC_BOOK_03_date_input_min")
 
-    assert min_date, "Date input không có thuộc tính min — có thể chọn quá khứ"
+    assert min_date, "Date input không có thuộc tính min"
     from datetime import date
     today = date.today().isoformat()
-    assert min_date >= today, f"min date ({min_date}) nhỏ hơn hôm nay ({today})"
+    assert min_date >= today

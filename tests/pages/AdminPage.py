@@ -6,30 +6,33 @@ class AdminCourtPage(BasePage):
     section = "admin"
     URL = f"{BASE_URL}/admin/courts"
 
-    ADD_FIELD_BTN   = (By.XPATH, "//button[contains(.,'Add Field')]")
+    ADD_FIELD_BTN = (By.XPATH, "//button[contains(.,'Add Field')]")
     CANCEL_FORM_BTN = (By.XPATH, "//button[contains(.,'Cancel')]")
 
-    NAME_INPUT      = (By.CSS_SELECTOR, "input[name='name'], input[placeholder*='name'], input[placeholder*='Name']")
-    TYPE_SELECT     = (By.CSS_SELECTOR, "select[name='field_type'], select")
-    PRICE_INPUT     = (By.CSS_SELECTOR, "input[name='price_per_hour'], input[type='number']")
-    DESC_INPUT      = (By.CSS_SELECTOR, "textarea[name='description'], textarea")
-    IMAGE_INPUT     = (By.CSS_SELECTOR, "input[type='file']")
-    SAVE_BTN        = (By.CSS_SELECTOR, "button[type='submit']")
+    NAME_INPUT = (By.CSS_SELECTOR, "input[placeholder*='Football Pitch'], input[placeholder*='Pitch']")
+    PRICE_INPUT = (By.CSS_SELECTOR, "input[type='number']")
+    DESC_INPUT = (By.CSS_SELECTOR, "textarea")
+    TYPE_SELECT = (By.CSS_SELECTOR, "select[name='field_type'], select")
+    IMAGE_INPUT = (By.CSS_SELECTOR, "input[type='file']")
+    SAVE_BTN = (By.CSS_SELECTOR, "button[type='submit']")
 
-    TAB_ALL         = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'All')]")
-    TAB_FOOTBALL    = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Football')]")
-    TAB_BADMINTON   = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Badminton')]")
-    TAB_TENNIS      = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Tennis')]")
+    TAB_ALL = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'All')]")
+    TAB_FOOTBALL = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Football')]")
+    TAB_BADMINTON = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Badminton')]")
+    TAB_TENNIS = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Tennis')]")
 
-    TABLE_ROWS      = (By.CSS_SELECTOR, "table tbody tr, .field-table tbody tr")
-    EDIT_BTNS       = (By.XPATH, "//button[contains(.,'Edit')]")
-    DELETE_BTNS     = (By.XPATH, "//button[contains(.,'Delete') or contains(.,'Deactivate')]")
+    TABLE_ROWS = (By.CSS_SELECTOR, "table tbody tr, .field-table tbody tr")
+    EDIT_BTNS = (By.CSS_SELECTOR, "table tbody tr td:last-child .table-actions button:first-child")
+    DELETE_BTNS = (By.CSS_SELECTOR, "table tbody tr td:last-child .table-actions button:last-child")
 
     def open_page(self):
         self.open(self.URL)
 
     def click_add_field(self):
         self.click(*self.ADD_FIELD_BTN)
+
+    def wait_table_loaded(self):
+        self.wait_visible(*self.TABLE_ROWS)
 
     def fill_field_form(self, name, price, description, field_type="football"):
         self.typing(*self.NAME_INPUT, name)

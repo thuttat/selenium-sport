@@ -3,17 +3,19 @@ from tests.pages.LoginPage import LoginPage
 from tests.pages.AdminPage import AdminCourtPage
 
 
-def login_as_admin(driver, username="admin", password="admin123"):
+def login_as_admin(driver, username="duyadmin", password="123456"):
     login = LoginPage(driver)
     login.login(username, password)
-    login.wait_url_contains("/admin")
+    login.wait_login_success()
+
+    return driver
 
 
 # TC_ADM_01
 def test_user_cannot_access_admin_page(driver):
     login = LoginPage(driver)
-    login.login("testuser", "ValidPass123!")
-    login.wait_url_contains("/")
+    login.login("b", "anhthu123@")
+    login.wait_login_success()
 
     driver.get("http://localhost:5173/admin/courts")
 
@@ -74,6 +76,7 @@ def test_admin_edit_court(driver):
 
     admin = AdminCourtPage(driver)
     admin.open_page()
+    admin.wait_table_loaded()
 
     if admin.get_row_count() == 0:
         pytest.skip("Không có sân nào để sửa")
@@ -84,11 +87,7 @@ def test_admin_edit_court(driver):
     import time
     admin.typing(*admin.NAME_INPUT, f"Sân Edited {int(time.time())}")
     admin.save_form()
-
-    try:
-        driver.switch_to.alert.accept()
-    except Exception:
-        pass
+    admin.accept_alert()
 
     admin.screenshot("TC_ADM_06_after_edit")
     assert "/admin/courts" in driver.current_url

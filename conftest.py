@@ -11,6 +11,10 @@ def driver():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
+    options.add_experimental_option("prefs", {
+        "credentials_enable_service": False,
+        "profile.password_manager_enabled": False
+    })
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     driver_path_windows = os.path.join(base_dir, '.venv', 'chromedriver.exe')

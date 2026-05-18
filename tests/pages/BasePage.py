@@ -62,8 +62,12 @@ class BasePage:
             EC.text_to_be_present_in_element((by, value), text)
         )
 
-    def screenshot(self, filename):
-        folder = os.path.join(SCREENSHOT_BASE, self.section)
+    def accept_alert(self):
+        WebDriverWait(self.driver, TIMEOUT).until(EC.alert_is_present())
+        self.driver.switch_to.alert.accept()
+
+    def screenshot(self, filename,section =None):
+        folder = os.path.join(SCREENSHOT_BASE, section or self.section)
         os.makedirs(folder, exist_ok=True)
 
         if not filename.endswith(".png"):
@@ -73,3 +77,8 @@ class BasePage:
         self.driver.save_screenshot(path)
         print(f"\nScreenshot saved: {path}")
         return path
+
+    def scroll_to_element(self, by, value):
+        element = self.find(by, value)
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+        return element
