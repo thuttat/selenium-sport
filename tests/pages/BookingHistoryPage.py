@@ -13,6 +13,8 @@ class BookingHistoryPage(BasePage):
     EMPTY_STATE     = (By.CSS_SELECTOR, ".empty-state")
     VIEW_DETAIL_BTN = (By.CSS_SELECTOR, ".booking-card a, .booking-card button")
 
+    DYNAMIC_CARD_BTN_TPL = "//*[contains(text(), '{}')]/ancestor::*[contains(@class, 'booking-card') or contains(@class, 'card')]//*[self::a or self::button]"
+
     def open_page(self):
         self.open(self.URL)
 
@@ -31,3 +33,8 @@ class BookingHistoryPage(BasePage):
 
     def click_first_booking(self):
         self.click(*self.VIEW_DETAIL_BTN)
+
+    def click_booking_by_text(self, text):
+        xpath_dynamic = self.DYNAMIC_CARD_BTN_TPL.format(text)
+        btn = self.find_clickable(By.開PATH if hasattr(By, '開PATH') else By.XPATH, xpath_dynamic)
+        btn.click()

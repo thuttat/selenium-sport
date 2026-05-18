@@ -7,7 +7,7 @@ class CourtPage(BasePage):
     section = "booking"
 
     DATE_INPUT= (By.CSS_SELECTOR, "input[type='date']")
-    TIMESLOTS = (By.XPATH, "//*[@id='root']/div/main/div/div/div[3]/div/div/button[6]")
+    TIMESLOTS = (By.XPATH, "//*[@id='root']/div/main/div/div/div[3]/div/div/button[4]")
     CONFIRM_BTN= (By.XPATH, "//button[contains(.,'Confirm') or contains(.,'Book')]")
     BACK_BTN= (By.XPATH, "//button[contains(.,'Back')]")
     COURT_NAME = (By.CSS_SELECTOR, ".booking-header h2, .court-title, h2")

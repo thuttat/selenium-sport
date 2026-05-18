@@ -11,6 +11,8 @@ class BookingDetailPage(BasePage):
     STATUS_BADGE = (By.CSS_SELECTOR, ".badge, [class*='badge']")
     COURT_NAME = (By.CSS_SELECTOR, "h2, .field-name")
 
+
+
     def cancel_booking(self):
         self.click(*self.CANCEL_BTN)
 
