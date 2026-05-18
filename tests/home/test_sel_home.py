@@ -4,14 +4,16 @@ from tests.pages.LoginPage import LoginPage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import time
 
 
 # TC_HOME_01
 def test_search_courts_by_keyword(driver):
     page = HomePage(driver)
     page.open_page()
-    kw = "VIP"
+    kw = "1"
     page.search(kw)
+    time.sleep(1)
     page.screenshot(f"TC_HOME_01_search_{kw}")
 
     names = page.get_court_names()
@@ -25,6 +27,7 @@ def test_search_no_result(driver):
     page = HomePage(driver)
     page.open_page()
     page.search("XYZZZZNOTEXIST123")
+    time.sleep(1)
     page.screenshot("TC_HOME_02_search_no_result")
 
     assert page.is_empty_state_visible(), "Không hiển thị empty state khi không có kết quả"
@@ -35,6 +38,7 @@ def test_filter_by_football(driver):
     page = HomePage(driver)
     page.open_page()
     page.filter_by_sport("football")
+    time.sleep(1)
     page.screenshot("TC_HOME_03_filter_football")
 
     assert "localhost:5173" in driver.current_url
@@ -45,6 +49,7 @@ def test_filter_by_badminton(driver):
     page = HomePage(driver)
     page.open_page()
     page.filter_by_sport("badminton")
+    time.sleep(1)
     page.screenshot("TC_HOME_04_filter_badminton")
     assert "localhost:5173" in driver.current_url
 
@@ -54,6 +59,7 @@ def test_filter_by_tennis(driver):
     page = HomePage(driver)
     page.open_page()
     page.filter_by_sport("tennis")
+    time.sleep(1)
     page.screenshot("TC_HOME_05_filter_tennis")
     assert "localhost:5173" in driver.current_url
 
@@ -68,6 +74,7 @@ def test_click_book_now_redirects_to_court(driver):
     home.open_page()
     home.click_book_first()
 
+    time.sleep(1)
     home.screenshot("TC_HOME_06_book_now_redirect")
     home.wait_url_contains("/court/")
     assert "/court/" in driver.current_url, \
