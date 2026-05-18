@@ -1,6 +1,11 @@
 import pytest
 from tests.pages.LoginPage import LoginPage
-from tests.pages.AdminPage import AdminCourtPage
+from tests.pages import AdminPage
+from tests.pages.AdminCourtPage import AdminCourtPage
+import time
+import os
+TEST_IMAGE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                          "asset", "Picture1.jpg")
 
 
 def login_as_admin(driver, username="duyadmin", password="123456"):
@@ -55,9 +60,11 @@ def test_admin_add_new_court(driver):
     admin.fill_field_form(
         name=f"Sân Test {int(time.time())}",
         price=200000,
-        description="Sân test"
-    )
+        description="Sân test",
+        image_path=TEST_IMAGE
+            )
     admin.save_form()
+
 
     try:
         driver.switch_to.alert.accept()
@@ -82,10 +89,11 @@ def test_admin_edit_court(driver):
         pytest.skip("Không có sân nào để sửa")
 
     admin.click_edit_first()
+    admin.wait_form_visible()
     admin.screenshot("TC_ADM_06_edit_form_open")
 
-    import time
-    admin.typing(*admin.NAME_INPUT, f"Sân Edited {int(time.time())}")
+
+    admin.react_typing(*admin.NAME_INPUT, f"Sân Edited {int(time.time())}")
     admin.save_form()
     admin.accept_alert()
 
@@ -125,47 +133,35 @@ def test_admin_delete_court_with_past_bookings(driver):
 
 # TC_ADM_10
 def test_admin_delete_court_no_bookings(driver):
-
     import time
     login_as_admin(driver)
 
     admin = AdminCourtPage(driver)
     admin.open_page()
 
-    # Thêm 1 sân mới (chắc chắn chưa có booking)
     admin.click_add_field()
     new_name = f"SanTempDelete_{int(time.time())}"
-    admin.fill_field_form(name=new_name, price=100000, description="Temp")
+    admin.fill_field_form(name=new_name, price=100000, description="Temp", image_path=TEST_IMAGE)
     admin.save_form()
-    try:
-        driver.switch_to.alert.accept()
-    except Exception:
-        pass
+    admin.accept_alert()
 
     admin.open_page()
-    count_before = admin.get_row_count()
+    admin.wait_table_loaded()
     admin.screenshot("TC_ADM_10_before_delete_no_booking_court")
 
-    delete_btns = admin.finds(*admin.DELETE_BTNS)
-    if not delete_btns:
-        pytest.skip("Không tìm thấy nút Delete")
-    delete_btns[-1].click()
+    admin.go_to_last_page()
+    admin.wait_table_loaded()
 
-    try:
-        driver.switch_to.alert.accept()
-    except Exception:
-        pass
-    try:
-        driver.switch_to.alert.accept()
-    except Exception:
-        pass
+    admin.click_delete_last()
+    admin.accept_alert()  # confirm
+    admin.accept_alert()
 
+    admin.wait_table_loaded()
     admin.screenshot("TC_ADM_10_after_delete_no_booking_court")
 
-    count_after = admin.get_row_count()
-    assert count_after < count_before, \
-        "Số sân không giảm — xóa sân chưa có booking thất bại"
-
+    status = admin.get_last_row_status()
+    assert status == "Inactive", \
+        f"Sân chưa được deactivate — status hiện tại: {status}"
 
 # TC_ADM_07
 def test_admin_set_court_to_maintenance(driver):

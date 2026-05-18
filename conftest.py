@@ -13,8 +13,12 @@ def driver():
     options.add_argument("--window-size=1920,1080")
     options.add_experimental_option("prefs", {
         "credentials_enable_service": False,
-        "profile.password_manager_enabled": False
+        "profile.password_manager_enabled": False,
+        "profile.password_manager_leak_detection": False,
+        "autofill.profile_enabled": False,
     })
+    options.add_argument("--disable-save-password-bubble")
+    options.add_argument("--disable-features=PasswordManagerOnboarding")
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     driver_path_windows = os.path.join(base_dir, '.venv', 'chromedriver.exe')

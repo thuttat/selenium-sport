@@ -1,65 +1,22 @@
-from selenium.webdriver.common.by import By
 from tests.pages.BasePage import BasePage, BASE_URL
 
 
-class AdminCourtPage(BasePage):
+class AdminPage(BasePage):
     section = "admin"
-    URL = f"{BASE_URL}/admin/courts"
+    BASE_ADMIN_URL = f"{BASE_URL}/admin"
 
-    ADD_FIELD_BTN = (By.XPATH, "//button[contains(.,'Add Field')]")
-    CANCEL_FORM_BTN = (By.XPATH, "//button[contains(.,'Cancel')]")
+    def _scroll_and_js_click(self, by, value):
+        el = self.scroll_to_element(by, value)
+        self.driver.execute_script("arguments[0].click();", el)
 
-    NAME_INPUT = (By.CSS_SELECTOR, "input[placeholder*='Football Pitch'], input[placeholder*='Pitch']")
-    PRICE_INPUT = (By.CSS_SELECTOR, "input[type='number']")
-    DESC_INPUT = (By.CSS_SELECTOR, "textarea")
-    TYPE_SELECT = (By.CSS_SELECTOR, "select[name='field_type'], select")
-    IMAGE_INPUT = (By.CSS_SELECTOR, "input[type='file']")
-    SAVE_BTN = (By.CSS_SELECTOR, "button[type='submit']")
-
-    TAB_ALL = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'All')]")
-    TAB_FOOTBALL = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Football')]")
-    TAB_BADMINTON = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Badminton')]")
-    TAB_TENNIS = (By.XPATH, "//button[contains(@class,'tab-btn') and contains(.,'Tennis')]")
-
-    TABLE_ROWS = (By.CSS_SELECTOR, "table tbody tr, .field-table tbody tr")
-    EDIT_BTNS = (By.CSS_SELECTOR, "table tbody tr td:last-child .table-actions button:first-child")
-    DELETE_BTNS = (By.CSS_SELECTOR, "table tbody tr td:last-child .table-actions button:last-child")
-
-    def open_page(self):
-        self.open(self.URL)
-
-    def click_add_field(self):
-        self.click(*self.ADD_FIELD_BTN)
-
-    def wait_table_loaded(self):
-        self.wait_visible(*self.TABLE_ROWS)
-
-    def fill_field_form(self, name, price, description, field_type="football"):
-        self.typing(*self.NAME_INPUT, name)
-        self.typing(*self.PRICE_INPUT, str(price))
-        self.typing(*self.DESC_INPUT, description)
-
-    def save_form(self):
-        self.click(*self.SAVE_BTN)
-
-    def get_row_count(self):
-        try:
-            rows = self.finds(*self.TABLE_ROWS)
-            return len(rows)
-        except Exception:
-            return 0
-
-    def click_edit_first(self):
-        self.click(*self.EDIT_BTNS)
-
-    def click_delete_first(self):
-        self.click(*self.DELETE_BTNS)
-
-    def filter_by_sport(self, sport):
-        tab_map = {
-            "all": self.TAB_ALL,
-            "football": self.TAB_FOOTBALL,
-            "badminton": self.TAB_BADMINTON,
-            "tennis": self.TAB_TENNIS,
-        }
-        self.click(*tab_map[sport])
+    def react_typing(self, by, value, text):
+        el = self.find(by, value)
+        el.click()
+        self.driver.execute_script("""
+            var el = arguments[0];
+            var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                window.HTMLInputElement.prototype, 'value').set;
+            nativeInputValueSetter.call(el, arguments[1]);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        """, el, text)
