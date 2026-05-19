@@ -9,6 +9,7 @@ from tests.pages.BookingHistoryPage import BookingHistoryPage
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from tests.pages.BasePage import BASE_URL
+from datetime import date, timedelta
 import time
 
 
@@ -266,6 +267,7 @@ def test_booking_blocked_during_restriction(driver):
     home.open_page()
     home.click_book_first()
 
+    home.screenshot("TC_CAN_09_before_cancel", section="cancel")
     court = CourtPage(driver)
     court.wait_url_contains("/court/")
     time.sleep(2)
@@ -282,5 +284,52 @@ def test_booking_blocked_during_restriction(driver):
     alert.accept()
 
     expected_msg = "Error: Your account is temporarily restricted from booking for 24 hours due to excessive cancellations."
-
+    court.screenshot("TC_CAN_09_after_cancel", section="cancel")
     assert expected_msg in alert_text, f"Sai thông báo Alert! Nhận được: '{alert_text}'"
+
+
+# TC_CAN_10
+def test_slot_restored_after_cancellation(driver):
+    login_as_user(driver, username="user_normal", password="User@12345")
+    history = BookingHistoryPage(driver)
+    history.open_page()
+    history.switch_to_upcoming()
+
+    history.screenshot("TC_CAN_10_upcoming_before", section="cancel")
+
+    history.cancel_booking_by_index(2)
+
+    try:
+        driver.switch_to.alert.accept()
+        time.sleep(1)
+        driver.switch_to.alert.accept()
+    except:
+        pass
+
+    history.screenshot("TC_CAN_10_after_cancel", section="cancel")
+
+    driver.execute_script("window.localStorage.clear();")
+    login_as_user(driver, username="user_other", password="User@12345")
+
+    home = HomePage(driver)
+    home.open_page()
+    home.click_book_first()
+
+    court = CourtPage(driver)
+    court.wait_url_contains("/court/")
+    time.sleep(2)
+
+    court.screenshot("TC_CAN_10_booking_screen", section="cancel")
+
+    court.select_first_available_slot()
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+
+    WebDriverWait(driver, 5).until(EC.alert_is_present())
+    alert_text = driver.switch_to.alert.text.lower()
+    driver.switch_to.alert.accept()
+
+    court.screenshot("TC_CAN_10_result", section="cancel")
+
+    assert "success" in alert_text or "thành công" in alert_text, \
+        f"Lỗi: Không đặt lại được slot! Alert: '{alert_text}'"
