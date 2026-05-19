@@ -8,7 +8,7 @@ class CourtPage(BasePage):
     section = "booking"
 
     DATE_INPUT= (By.CSS_SELECTOR, "input[type='date']")
-    TIMESLOTS = (By.XPATH, "//*[@id='root']/div/main/div/div/div[3]/div/div/button[8]")
+    TIMESLOTS = (By.XPATH, "//*[@id='root']/div/main/div/div/div[3]/div/div/button[2]")
     CONFIRM_BTN= (By.XPATH, "//button[contains(.,'Confirm') or contains(.,'Book')]")
     BACK_BTN= (By.XPATH, "//button[contains(.,'Back')]")
     COURT_NAME = (By.CSS_SELECTOR, ".booking-header h2, .court-title, h2")
@@ -26,9 +26,9 @@ class CourtPage(BasePage):
         return [s for s in slots if s.is_enabled()]
 
     def select_first_available_slot(self):
+        self.scroll_to_element(*self.TIMESLOTS)
         slots = self.get_available_slots()
         if slots:
-            self.scroll_to_element(*self.TIMESLOTS)
             slots[0].click()
             print(f"\nSlot class after click: {slots[0].get_attribute('class')}")
             self.wait_visible(*self.SLOT_SELECTED)

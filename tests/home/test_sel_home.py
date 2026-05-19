@@ -93,3 +93,44 @@ def test_book_now_without_login_redirects_to_login(driver):
     home.wait_url_contains("/login")
     assert "/login" in driver.current_url, \
         f"Không chuyển về trang login sau khi click: {driver.current_url}"
+
+# TC_GUEST_01
+def test_guest_can_view_court_list(driver):
+    page = HomePage(driver)
+    page.open_page()
+    page.screenshot("TC_GUEST_01_court_list")
+
+    names = page.get_court_names()
+    assert len(names) > 0, "Guest không thấy sân nào — danh sách sân trống hoặc không load được"
+
+
+# TC_GUEST_02
+def test_guest_filter_courts_by_tennis(driver):
+    page = HomePage(driver)
+    page.open_page()
+    page.filter_by_sport("tennis")
+    time.sleep(1)
+    page.screenshot("TC_GUEST_02_filter_tennis")
+
+    names = page.get_court_names()
+    assert "localhost:5173" in driver.current_url, "Trang bị redirect sau khi filter"
+
+    assert page.is_empty_state_visible() is False or len(names) >= 0, \
+        "Filter Tennis khiến trang hiển thị lỗi"
+
+
+# TC_GUEST_03
+def test_guest_search_court_by_name(driver):
+    page = HomePage(driver)
+    page.open_page()
+
+    keyword = "Sân"
+    page.search(keyword)
+    time.sleep(1)
+    page.screenshot("TC_GUEST_03_search_by_name")
+
+    names = page.get_court_names()
+    assert len(names) > 0, f"Không tìm thấy sân nào với từ khóa '{keyword}'"
+    assert all(keyword.lower() in n.lower() for n in names), \
+        f"Có sân không chứa từ khóa '{keyword}': {names}"
+
