@@ -22,6 +22,12 @@ class HomePage(BasePage):
     LOGOUT_BTN = (By.XPATH, "//button[contains(.,'Logout') or contains(.,'Sign out')]")
     LOGIN_BTN = (By.XPATH, "//*[contains(text(), 'Go to the Login page')]")
 
+    BOOK_BTN_BY_NAME_TPL = "//h3[contains(text(),'{}')]/ancestor::div[contains(@class,'card')]//button[contains(@class,'btn-primary')]"
+
+    def click_book_by_name(self, name):
+        xpath = self.BOOK_BTN_BY_NAME_TPL.format(name)
+        self.click(By.XPATH, xpath)
+
     def open_page(self):
         self.open(self.URL)
 

@@ -46,39 +46,109 @@ def do_cancel_with_confirm(driver, detail):
         pass
 
 # TC_CAN_01
-def test_cancel_booking_success(driver):
-    login_as_user(driver)
+def test_cancel_at_exact_2h_boundary(driver):
+    login_as_user(driver, username="user_normal", password="User@12345")
 
     history = BookingHistoryPage(driver)
     history.open_page()
-
+    history.switch_to_upcoming()
     history.wait_visible(*BookingHistoryPage.BOOKING_CARDS)
-    history.screenshot("TC_CAN_01_booking_list_before_cancel", section="cancel")
+    history.screenshot("TC_CAN_01_before_cancel", section="cancel")
 
-    count_before = history.get_booking_count()
-    if count_before == 0:
-        pytest.skip("Không có booking nào để hủy")
-
-    history.click_first_booking()
-
+    try:
+        history.click_booking_by_text("Ca Boundary Đúng 2h")
+    except Exception:
+        pytest.skip("Không tìm thấy booking 'Ca Boundary Đúng 2h'. Hãy chạy lại seed data.")
 
     detail = BookingDetailPage(driver)
     detail.wait_url_contains("/booking/")
-    detail.wait_visible(*BookingDetailPage.CANCEL_BTN)
-    detail.screenshot("TC_CAN_01_booking_detail_before_cancel")
+    detail.wait_visible(*BookingDetailPage.STATUS_BADGE)
+    detail.screenshot("TC_CAN_01_detail", section="cancel")
 
     if not detail.is_cancel_button_visible():
-        pytest.skip("Booking này không thể hủy (không còn nút Cancel)")
+        pytest.skip("Không thấy nút Cancel — booking không đủ điều kiện hủy")
 
     detail.cancel_booking()
-    driver.switch_to.alert.accept()
     detail.accept_alert()
+    alert_text = detail.accept_alert()
+    detail.screenshot("TC_CAN_01_after_cancel", section="cancel")
 
+    assert "success" in alert_text.lower() or "thành công" in alert_text.lower(), \
+        f"Hủy đúng 2h trước nhưng hệ thống từ chối: '{alert_text}'"
+
+
+# TC_CAN_02
+def test_cancel_above_2h_boundary(driver):
+    login_as_user(driver, username="user_normal", password="User@12345")
+
+    history = BookingHistoryPage(driver)
+    history.open_page()
+    history.switch_to_upcoming()
+    history.wait_visible(*BookingHistoryPage.BOOKING_CARDS)
+
+    history.go_to_last_page()
+    history.screenshot("TC_CAN_02_before_cancel", section="cancel")
+
+    try:
+        history.click_booking_by_text("Ca Tối Muộn")
+    except Exception:
+        pytest.skip("Không tìm thấy booking 'Ca tối'. Hãy chạy lại seed data.")
+
+    detail = BookingDetailPage(driver)
+    detail.wait_url_contains("/booking/")
     detail.wait_visible(*BookingDetailPage.STATUS_BADGE)
-    detail.screenshot("TC_CAN_01_after_cancel")
+    detail.screenshot("TC_CAN_02_detail", section="cancel")
 
-    assert not detail.is_cancel_button_visible(), \
-        "Nút Cancel vẫn còn sau khi đã hủy — trạng thái chưa cập nhật"
+    if not detail.is_cancel_button_visible():
+        pytest.skip("Không thấy nút Cancel")
+
+    detail.cancel_booking()
+    detail.accept_alert()
+    alert_text = detail.accept_alert()
+    detail.screenshot("TC_CAN_02_after_cancel", section="cancel")
+
+    assert "success" in alert_text.lower() or "thành công" in alert_text.lower(), \
+        f"Hủy khi còn hơn 2h nhưng hệ thống từ chối: '{alert_text}'"
+
+
+# TC_CAN_03
+def test_cancel_below_2h_boundary(driver):
+    login_as_user(driver, username="user_normal", password="User@12345")
+
+    history = BookingHistoryPage(driver)
+    history.open_page()
+    history.switch_to_upcoming()
+    history.wait_visible(*BookingHistoryPage.BOOKING_CARDS)
+    history.screenshot("TC_CAN_03_before_cancel", section="cancel")
+
+    try:
+        history.click_booking_by_text("Ca Sắp Diễn Ra < 2h")
+    except Exception:
+        pytest.skip("Không tìm thấy booking 'Ca Sắp Diễn Ra < 2h'. Hãy chạy lại seed data.")
+
+    detail = BookingDetailPage(driver)
+    detail.wait_url_contains("/booking/")
+    detail.wait_visible(*BookingDetailPage.STATUS_BADGE)
+    detail.screenshot("TC_CAN_03_detail", section="cancel")
+
+    if not detail.is_cancel_button_visible():
+        detail.screenshot("TC_CAN_03_no_cancel_btn", section="cancel")
+        return
+
+    detail.cancel_booking()
+    try:
+        detail.accept_alert()
+    except Exception:
+        pass
+
+    try:
+        alert_text = detail.accept_alert()
+        detail.screenshot("TC_CAN_03_after_attempt", section="cancel")
+        assert "cannot cancel" in alert_text.lower() or "less than 2" in alert_text.lower(), \
+            f"BE không từ chối hủy dưới 2h: '{alert_text}'"
+    except Exception:
+        detail.screenshot("TC_CAN_03_after_attempt", section="cancel")
+        pytest.fail("Hủy dưới 2h nhưng không có thông báo lỗi từ hệ thống")
 
 
 # TC_CAN_04
@@ -287,49 +357,56 @@ def test_booking_blocked_during_restriction(driver):
     court.screenshot("TC_CAN_09_after_cancel", section="cancel")
     assert expected_msg in alert_text, f"Sai thông báo Alert! Nhận được: '{alert_text}'"
 
-
-# TC_CAN_10
+#TC_CAN_10
 def test_slot_restored_after_cancellation(driver):
     login_as_user(driver, username="user_normal", password="User@12345")
+
     history = BookingHistoryPage(driver)
     history.open_page()
     history.switch_to_upcoming()
-
-    history.screenshot("TC_CAN_10_upcoming_before", section="cancel")
-
-    history.cancel_booking_by_index(2)
+    history.wait_visible(*BookingHistoryPage.BOOKING_CARDS)
+    history.screenshot("TC_CAN_10_before_cancel", section="cancel")
 
     try:
-        driver.switch_to.alert.accept()
-        time.sleep(1)
-        driver.switch_to.alert.accept()
-    except:
-        pass
+        history.click_booking_by_text("Sân Bóng Thường 2")
+    except Exception:
+        pytest.skip("Không tìm thấy booking 'Sân Bóng Thường 2'. Hãy chạy lại seed data.")
 
-    history.screenshot("TC_CAN_10_after_cancel", section="cancel")
+    detail = BookingDetailPage(driver)
+    detail.wait_url_contains("/booking/")
+    detail.wait_visible(*BookingDetailPage.STATUS_BADGE)
 
-    driver.execute_script("window.localStorage.clear();")
+    if not detail.is_cancel_button_visible():
+        pytest.skip("Booking này không thể hủy")
+
+    detail.cancel_booking()
+    detail.accept_alert()  # confirm
+    detail.accept_alert()  # success
+    detail.screenshot("TC_CAN_10_after_cancel", section="cancel")
+
     login_as_user(driver, username="user_other", password="User@12345")
 
     home = HomePage(driver)
     home.open_page()
-    home.click_book_first()
+    home.click_book_by_name("Sân Bóng Thường 2")
 
     court = CourtPage(driver)
     court.wait_url_contains("/court/")
-    time.sleep(2)
 
+    tomorrow_str = (date.today() + timedelta(days=1)).strftime("%Y-%m-%d")
+    court.select_date(tomorrow_str)
+    time.sleep(1)
+
+    court.wait_visible(*CourtPage.TIMESLOTS)
     court.screenshot("TC_CAN_10_booking_screen", section="cancel")
 
     court.select_first_available_slot()
     court.scroll_to_element(*court.CONFIRM_BTN)
     court.click(*court.CONFIRM_BTN)
 
-    WebDriverWait(driver, 5).until(EC.alert_is_present())
-    alert_text = driver.switch_to.alert.text.lower()
-    driver.switch_to.alert.accept()
-
+    alert_text = court.accept_alert()
+    print(f"\nAlert text: {alert_text}")
     court.screenshot("TC_CAN_10_result", section="cancel")
 
-    assert "success" in alert_text or "thành công" in alert_text, \
-        f"Lỗi: Không đặt lại được slot! Alert: '{alert_text}'"
+    assert "success" in alert_text.lower() or "thành công" in alert_text.lower(), \
+        f"Lỗi: Slot chưa được giải phóng sau khi hủy! BE báo: '{alert_text}'"

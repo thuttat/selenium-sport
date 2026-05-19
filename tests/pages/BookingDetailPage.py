@@ -10,7 +10,7 @@ class BookingDetailPage(BasePage):
     BACK_BTN = (By.CSS_SELECTOR, "button.btn-outline")
     STATUS_BADGE = (By.CSS_SELECTOR, ".badge, [class*='badge']")
     COURT_NAME = (By.CSS_SELECTOR, "h2, .field-name")
-    CANCEL_BTNS =(By.CSS_SELECTOR, ".card-base booking-card button.btn.btn-danger")
+    CANCEL_BTN_IN_CARD = (By.CSS_SELECTOR, ".booking-list .booking-card .actions button.btn.btn-danger")
 
 
 
@@ -30,8 +30,4 @@ class BookingDetailPage(BasePage):
         except Exception:
             return False
 
-    def cancel_booking_by_index(self, index):
-        btns = self.finds(*self.CANCEL_BTNS)
-        if index < len(btns):
-            self.scroll_to_element(*self.CANCEL_BTNS)
-            btns[index].click()
+

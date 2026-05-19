@@ -1,11 +1,13 @@
 import os
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 TIMEOUT = 10
 BASE_URL = "http://localhost:5173"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SCREENSHOT_BASE = os.path.join(BASE_DIR, "screenshots")
+TEST_IMAGE = os.path.join(BASE_DIR, "asset", "Picture1.jpg")
 
 
 class BasePage:
@@ -64,7 +66,10 @@ class BasePage:
 
     def accept_alert(self):
         WebDriverWait(self.driver, TIMEOUT).until(EC.alert_is_present())
-        self.driver.switch_to.alert.accept()
+        alert = self.driver.switch_to.alert
+        text = alert.text
+        alert.accept()
+        return text
 
     def screenshot(self, filename,section =None):
         folder = os.path.join(SCREENSHOT_BASE, section or self.section)
@@ -82,3 +87,33 @@ class BasePage:
         element = self.find(by, value)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
         return element
+
+    def react_typing(self, by, value, text):
+        el = self.find(by, value)
+        el.click()
+        self.driver.execute_script("""
+            var el = arguments[0];
+            var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                window.HTMLInputElement.prototype, 'value').set;
+            nativeInputValueSetter.call(el, arguments[1]);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        """, el, text)
+
+    def _quote_for_xpath(self, text: str) -> str:
+        if "'" in text and '"' in text:
+            parts = text.split("'")
+            return "concat(" + ", \"'\", ".join(f"'{p}'" for p in parts) + ")"
+        if "'" in text:
+            return f'"{text}"'
+        return f"'{text}'"
+
+    def find_clickable_by_text_in_card(self, text: str, card_classes=("booking-card", "card")):
+
+        q = self._quote_for_xpath(text)
+        card_cond = " or ".join([f"contains(@class, '{c}')" for c in card_classes])
+        xpath = (
+            f"//*[contains(normalize-space(.), {q})]/ancestor::*[{card_cond}]"
+            f"//a | //*[contains(normalize-space(.), {q})]/ancestor::*[{card_cond}]//button"
+        )
+        return self.find_clickable(By.XPATH, xpath)

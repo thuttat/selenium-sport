@@ -96,3 +96,134 @@ def test_cannot_select_past_date(driver):
     from datetime import date
     today = date.today().isoformat()
     assert min_date >= today
+
+# TC_BOOK_06
+def test_cannot_book_more_than_3_per_day(driver):
+    login_as_user(driver, username="user_3bookings", password="User@12345")
+
+    home = HomePage(driver)
+    home.open_page()
+    home.click_book_first()
+
+    court = CourtPage(driver)
+    court.wait_url_contains("/court/")
+
+    if not court.select_first_available_slot():
+        pytest.skip("Không có slot trống")
+
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+
+    alert_text = court.accept_alert()
+    court.screenshot("TC_BOOK_06_quota_exceeded", section="booking")
+
+    assert "3" in alert_text or "maximum" in alert_text.lower() or "quota" in alert_text.lower(), \
+        f"Không có thông báo giới hạn booking: '{alert_text}'"
+
+
+# TC_BOOK_07
+def test_cannot_book_already_booked_slot(driver):
+    login_as_user(driver, username="user_normal", password="User@12345")
+
+    home = HomePage(driver)
+    home.open_page()
+    home.click_book_by_name("Sân Bóng VIP 1 (5 người)")
+
+    court = CourtPage(driver)
+    court.wait_url_contains("/court/")
+    court.select_tomorrow()
+
+    court.scroll_to_element(*court.TIMESLOTS)
+    court.find(*court.TIMESLOTS).click()
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+    court.accept_alert()
+
+    login_as_user(driver, username="user_2bookings", password="User@12345")
+
+    home.open_page()
+    home.click_book_by_name("Sân Bóng VIP 1 (5 người)")
+
+    court.wait_url_contains("/court/")
+    court.select_tomorrow()
+
+    court.scroll_to_element(*court.TIMESLOTS)
+    court.find(*court.TIMESLOTS).click()
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+
+    alert_text = court.accept_alert()
+    court.screenshot("TC_BOOK_07_time_conflict", section="booking")
+
+    assert "already booked" in alert_text.lower() or "conflict" in alert_text.lower(), \
+        f"Không có thông báo conflict: '{alert_text}'"
+
+
+# TC_BOOK_15
+def test_booking_different_court_types(driver):
+    login_as_user(driver, username="user_many_bk", password="User@12345")
+
+    # Football
+    home = HomePage(driver)
+    home.open_page()
+    home.click_book_by_name("Sân Bóng VIP 1 (5 người)")
+    court = CourtPage(driver)
+    court.wait_url_contains("/court/")
+    court.select_tomorrow()
+    court.scroll_to_element(*court.TIMESLOTS)
+    court.find(*court.TIMESLOTS).click()
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+    alert_text = court.accept_alert()
+    assert "success" in alert_text.lower(), f"Đặt Football thất bại: '{alert_text}'"
+    court.screenshot("TC_BOOK_15_football", section="booking")
+
+    # Tennis
+    home.open_page()
+    home.click_book_by_name("Sân Tennis Chuẩn ATP")
+    court.wait_url_contains("/court/")
+    court.select_tomorrow()
+    court.scroll_to_element(*court.TIMESLOTS)
+    court.find(*court.TIMESLOTS).click()
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+    alert_text = court.accept_alert()
+    assert "success" in alert_text.lower(), f"Đặt Tennis thất bại: '{alert_text}'"
+    court.screenshot("TC_BOOK_15_tennis", section="booking")
+
+    # Badminton
+    home.open_page()
+    home.click_book_by_name("Sân Cầu Lông Số 1")
+    court.wait_url_contains("/court/")
+    court.select_tomorrow()
+    court.scroll_to_element(*court.TIMESLOTS)
+    court.find(*court.TIMESLOTS).click()
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+    alert_text = court.accept_alert()
+    assert "success" in alert_text.lower(), f"Đặt Badminton thất bại: '{alert_text}'"
+    court.screenshot("TC_BOOK_15_badminton", section="booking")
+
+
+# TC_BOOK_16
+def test_third_booking_same_day_success(driver):
+    login_as_user(driver, username="user_2bookings", password="User@12345")
+
+    home = HomePage(driver)
+    home.open_page()
+    home.click_book_first()
+
+    court = CourtPage(driver)
+    court.wait_url_contains("/court/")
+
+    if not court.select_first_available_slot():
+        pytest.skip("Không có slot trống")
+
+    court.scroll_to_element(*court.CONFIRM_BTN)
+    court.click(*court.CONFIRM_BTN)
+
+    alert_text = court.accept_alert()
+    court.screenshot("TC_BOOK_16_third_booking", section="booking")
+
+    assert "success" in alert_text.lower() or "thành công" in alert_text.lower(), \
+        f"Booking thứ 3 trong ngày thất bại: '{alert_text}'"

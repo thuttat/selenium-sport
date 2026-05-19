@@ -2,7 +2,8 @@ import pytest
 from tests.pages.LoginPage import LoginPage
 from tests.pages.RegisterPage import RegisterPage
 from tests.pages.HomePage import HomePage
-
+from tests.pages.BasePage import BASE_URL, TEST_IMAGE
+import time
 
 
 # TC_LOG_01
@@ -123,3 +124,86 @@ def test_access_protected_page_after_logout(driver):
 
     home.wait_url_contains("/login")
     assert "/login" in driver.current_url, "Có thể truy cập trang protected sau logout!"
+
+
+# TC_REG_02
+def test_register_missing_required_fields(driver):
+    page = RegisterPage(driver)
+    page.open_page()
+    page.submit()
+    page.screenshot("TC_REG_02_missing_fields")
+
+    assert "/register" in driver.current_url, \
+        "Form cho phép submit khi bỏ trống fields — validation không hoạt động"
+
+
+# TC_REG_03
+def test_register_duplicate_username(driver):
+    page = RegisterPage(driver)
+    page.register(
+        fullname="Duplicate User",
+        username="duyadmin",
+        email=f"dup_{int(time.time())}@gmail.com",
+        password="ValidPass123!",
+        confirm="ValidPass123!",
+        avatar_path=TEST_IMAGE
+    )
+    page.screenshot("TC_REG_03_duplicate_username")
+
+    msg = page.get_message()
+    assert "username" in msg.lower() and "exist" in msg.lower(), \
+        f"Thông báo lỗi không đúng khi trùng username: '{msg}'"
+
+# TC_REG_05
+def test_register_invalid_email_format(driver):
+    page = RegisterPage(driver)
+    page.register(
+        fullname="Test User",
+        username=f"seluser_{int(time.time())}",
+        email="invalidemail.com",
+        password="ValidPass123!",
+        confirm="ValidPass123!",
+        avatar_path=TEST_IMAGE
+    )
+    page.screenshot("TC_REG_05_invalid_email")
+
+    assert "/register" in driver.current_url, \
+        "Form cho phép submit khi email sai format — validation không hoạt động"
+
+# TC_REG_08
+def test_register_invalid_password_format(driver):
+    page = RegisterPage(driver)
+    page.register(
+        fullname="Test User",
+        username=f"seluser_{int(time.time())}",
+        email=f"sel_{int(time.time())}@gmail.com",
+        password="123456",
+        confirm="123456",
+        avatar_path=TEST_IMAGE
+    )
+    page.screenshot("TC_REG_08_invalid_password")
+
+    msg = page.get_message()
+    assert "/register" in driver.current_url, \
+        "Form cho phép submit khi password sai format — validation không hoạt động"
+
+
+# TC_REG_09
+def test_register_file_too_large(driver, tmp_path):
+    large_file = tmp_path / "large.jpg"
+    large_file.write_bytes(b"\xff\xd8\xff" + b"\x00" * (21 * 1024 * 1024))
+
+    page = RegisterPage(driver)
+    page.register(
+        fullname="Test User",
+        username=f"seluser_{int(time.time())}",
+        email=f"sel_{int(time.time())}@gmail.com",
+        password="ValidPass123!",
+        confirm="ValidPass123!",
+        avatar_path=str(large_file)
+    )
+    page.screenshot("TC_REG_09_file_too_large")
+
+    msg = page.get_message()
+    assert "big" in msg.lower() or "size" in msg.lower() or "large" in msg.lower(), \
+        f"Thông báo lỗi không đúng khi file quá lớn: '{msg}'"

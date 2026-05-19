@@ -21,11 +21,11 @@ class RegisterPage(BasePage):
         self.open(self.URL)
 
     def fill_form(self, fullname, username, email, password, confirm):
-        self.typing(*self.FULLNAME_INPUT, fullname)
-        self.typing(*self.USERNAME_INPUT, username)
-        self.typing(*self.EMAIL_INPUT, email)
-        self.typing(*self.PASSWORD_INPUT, password)
-        self.typing(*self.CONFIRM_INPUT, confirm)
+        self.react_typing(*self.FULLNAME_INPUT, fullname)
+        self.react_typing(*self.USERNAME_INPUT, username)
+        self.react_typing(*self.EMAIL_INPUT, email)
+        self.react_typing(*self.PASSWORD_INPUT, password)
+        self.react_typing(*self.CONFIRM_INPUT, confirm)
 
     def upload_avatar(self, file_path):
         el = self.find(*self.AVATAR_INPUT)

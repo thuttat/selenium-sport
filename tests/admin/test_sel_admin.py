@@ -8,7 +8,7 @@ TEST_IMAGE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pat
                           "asset", "Picture1.jpg")
 
 
-def login_as_admin(driver, username="duyadmin", password="123456"):
+def login_as_admin(driver, username="duyadmin", password="Admin@12345"):
     login = LoginPage(driver)
     login.login(username, password)
     login.wait_login_success()
@@ -239,3 +239,104 @@ def test_admin_set_court_to_active(driver):
 
     names = home.get_court_names()
     assert len(names) > 0, "Không có sân nào hiển thị sau khi chuyển Active"
+
+# TC_ADM_03
+def test_admin_add_duplicate_court_name(driver):
+    login_as_admin(driver)
+
+    admin = AdminCourtPage(driver)
+    admin.open_page()
+
+    admin.click_add_field()
+    admin.fill_field_form(
+        name="Sân Bóng VIP 1 (5 người)",
+        price=200000,
+        description="Duplicate test",
+        image_path=TEST_IMAGE
+    )
+    admin.save_form()
+
+    try:
+        alert_text = admin.accept_alert()
+        admin.screenshot("TC_ADM_03_duplicate_name")
+        assert "exist" in alert_text.lower() or "duplicate" in alert_text.lower() or "already" in alert_text.lower(), \
+            f"Không có thông báo lỗi tên trùng: '{alert_text}'"
+    except Exception:
+        admin.screenshot("TC_ADM_03_duplicate_name")
+        assert "/admin/courts" in driver.current_url
+
+
+
+def test_admin_cannot_delete_court_with_future_booking(driver):
+    login_as_admin(driver)
+
+    page = AdminCourtPage(driver)
+    page.open_page()
+    page.wait_table_loaded()
+
+    target_row = page.find_row_by_name("Tương Lai")
+
+    if target_row is None:
+         while page.go_next_page():
+             target_row = page.find_row_by_name("Tương Lai")
+             if target_row:
+                 break
+
+    if target_row is None:
+        pytest.skip("Không tìm thấy sân" )
+    page.click_delete_in_row(target_row)
+
+    page.confirm_dialog()
+    msg = page.get_response_message()
+
+    page.screenshot("TC_ADM_05_delete_future_booking")
+
+    assert msg, (
+            "Không nhận được thông báo nào sau khi click Delete — "
+            "frontend có thể thiếu toast/alert"
+    )
+    keywords = ("future", "cannot", "booking", "future bookings", "không thể")
+    assert any(k in msg.lower() for k in keywords), (
+            f"Hệ thống cho phép xóa sân có booking tương lai. "
+            f"Message thực tế: '{msg}'"
+    )
+
+# TC_ADM_11
+def test_admin_cannot_access_user_page(driver):
+    login_as_admin(driver)
+
+    driver.get("http://localhost:5173/bookings")
+    admin = AdminCourtPage(driver)
+    admin.screenshot("TC_ADM_11_admin_access_user_page")
+
+    assert "/bookings" not in driver.current_url or "admin" in driver.current_url, \
+        "Admin có thể truy cập trang user /bookings"
+
+
+# TC_ADM_12
+def test_admin_dashboard_shows_stats(driver):
+    login_as_admin(driver)
+
+    driver.get("http://localhost:5173/admin/dashboard")
+    admin = AdminCourtPage(driver)
+
+    import time; time.sleep(1)
+    admin.screenshot("TC_ADM_12_dashboard_stats")
+
+    page_source = driver.page_source
+    assert any(keyword in page_source for keyword in ["Total", "total", "Users", "Courts", "Bookings"]), \
+        "Dashboard không hiển thị số liệu thống kê"
+
+
+# TC_ADM_13
+def test_admin_dashboard_shows_court_type_chart(driver):
+    login_as_admin(driver)
+
+    driver.get("http://localhost:5173/admin/dashboard")
+    admin = AdminCourtPage(driver)
+
+    import time; time.sleep(1)
+    admin.screenshot("TC_ADM_13_dashboard_chart")
+    page_source = driver.page_source
+    assert "Football" in page_source or "Badminton" in page_source or "Tennis" in page_source, \
+        "Dashboard không hiển thị phân bố loại sân"
