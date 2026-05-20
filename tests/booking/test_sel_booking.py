@@ -5,7 +5,7 @@ from tests.pages.CourtPage import CourtPage
 from tests.pages.BookingHistoryPage import BookingHistoryPage
 
 
-def login_as_user(driver, username="b", password="anhthu123@"):
+def login_as_user(driver, username="user_normal", password="User@12345"):
     login = LoginPage(driver)
     login.login(username, password)
     login.wait_login_success()

@@ -6,6 +6,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
+def login_as_user(driver, username="user_normal", password="User@12345"):
+    login = LoginPage(driver)
+    login.login(username, password)
+    login.wait_login_success()
+
+    return driver
 
 # TC_HOME_01
 def test_search_courts_by_keyword(driver):
@@ -66,16 +72,14 @@ def test_filter_by_tennis(driver):
 
 # TC_HOME_06
 def test_click_book_now_redirects_to_court(driver):
-    login = LoginPage(driver)
-    login.login("testuser", "ValidPass123!")
-    login.wait_url_contains("/")
+    login_as_user(driver)
 
     home = HomePage(driver)
     home.open_page()
     home.click_book_first()
-
-    time.sleep(1)
     home.screenshot("TC_HOME_06_book_now_redirect")
+
+
     home.wait_url_contains("/court/")
     assert "/court/" in driver.current_url, \
         f"Không chuyển sang trang court: {driver.current_url}"
