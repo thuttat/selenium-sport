@@ -15,6 +15,8 @@ Browser tests for the [Sport Court Booking application](https://github.com/thutt
 
 Trịnh Thị Anh Thư added browser test scenarios, page objects and screenshots. The shared [page objects](tests/pages) locate controls and perform common actions. The [end-to-end cases](tests/e2e/test_sel_e2e.py) combine actions across screens. [Contribution commit](https://github.com/thuttat/selenium-sport/commit/580034d77f16d560f5c3b0b20d4faa2344b450be) · [Screenshot archive](screenshots)
 
+The application tested here includes Lê Hoàng Bảo Trân’s React booking and payment screens and Nguyễn Triệu Duy’s Flask booking API and cancellation rules. See the [team contributions and implementation commits](https://github.com/thuttat/SPORT-COURT-BOOKING#team-contributions).
+
 ## Run locally
 
 Start the [application and its seeded test database](https://github.com/thuttat/SPORT-COURT-BOOKING#run-locally) first. The suite expects the frontend at `http://localhost:5173` and a running backend at port 5000. Use a disposable instance because tests create users and modify bookings and courts.
